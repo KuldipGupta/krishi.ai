@@ -16,7 +16,20 @@ Reply with ONLY that one word. No explanation. No punctuation. Just the word."""
 def classify_message(message: str) -> str:
     msg = (message or "").lower()
 
-    disease_keywords = ["रोग", "कीड़ा", "कीड़े", "कीड़े", "fungus", "spots", "leaf", "yellowing", "infection", "photo"]
+    disease_keywords = [
+        "रोग",
+        "कीड़ा",
+        "कीड़े",
+        "कीड़े",
+        "bimari",
+        "bemaari",
+        "fungus",
+        "spots",
+        "leaf",
+        "yellowing",
+        "infection",
+        "photo",
+    ]
     weather_keywords = [
         "बारिश", "मौसम", "mausam", "baarish", "तापमान", "tapmaan", "rain", "temperature", "weather",
         "बादल", "badal", "बरसात", "barsaat", "humidity", "धूप", "dhoop",
