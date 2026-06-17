@@ -19,6 +19,7 @@ Be specific and practical. A farmer will read this."""
 
 def disease_node(state: AgentState) -> AgentState:
     image_base64 = state.get("image_base64")
+    mime_type = state.get("image_mime_type") or "image/jpeg"
 
     if not image_base64:
         state["tool_result"] = "No image received. Please send a photo of your crop for disease analysis."
@@ -33,7 +34,7 @@ def disease_node(state: AgentState) -> AgentState:
                 DISEASE_PROMPT,
                 types.Part.from_bytes(
                     data=image_data,
-                    mime_type="image/jpeg"
+                    mime_type=mime_type
                 )
             ]
         )

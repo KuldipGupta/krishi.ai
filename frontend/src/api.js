@@ -7,12 +7,13 @@ const API = axios.create({
   }
 })
 
-export async function sendMessage(message, language, imageBase64, location) {
+export async function sendMessage(message, language, imageBase64, location, imageMimeType) {
   const response = await API.post("/chat", {
     session_id: "farmer_" + Math.random().toString(36).substr(2, 9),
     message: message,
     language: language || "hi",
     image_base64: imageBase64 || null,
+    image_mime_type: imageMimeType || null,
     location: location || { city: "Lucknow" }
   })
 

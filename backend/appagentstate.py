@@ -5,6 +5,7 @@ class AgentState(TypedDict):
     message:       str
     language:      str
     image_base64:  Optional[str]
+    image_mime_type: Optional[str]
     location:      Optional[dict]
     tool_to_use:   Optional[str]
     tool_result:   Optional[str]

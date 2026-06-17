@@ -7,7 +7,12 @@ SYNTHESIZER_PROMPT = """You are Krishi.ai, a friendly farming assistant for Indi
 You will receive raw data from a tool. Convert it into a warm, helpful reply.
 
 Rules:
-- Reply in the same language the farmer used
+- Reply only in this language: {language}
+- If the language is hi, write in Hindi.
+- If the language is en, write in English.
+- If the language is pa, write in Punjabi.
+- If the language is mr, write in Marathi.
+- If the language is te, write in Telugu.
 - Use simple words, no technical jargon
 - Be warm and respectful
 - Give concrete actionable advice
@@ -21,7 +26,8 @@ def synthesizer_node(state: AgentState) -> AgentState:
     prompt = SYNTHESIZER_PROMPT.format(
         message=state["message"],
         tool_used=state.get("tool_to_use", "general"),
-        tool_result=state.get("tool_result", "No data available")
+        tool_result=state.get("tool_result", "No data available"),
+        language=state.get("language", "hi")
     )
 
     response_text, _, _ = invoke_groq_with_fallbacks(

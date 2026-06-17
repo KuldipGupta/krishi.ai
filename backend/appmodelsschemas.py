@@ -6,6 +6,7 @@ class ChatRequest(BaseModel):
     message: str
     language: str = "hi"
     image_base64: Optional[str] = None
+    image_mime_type: Optional[str] = None
     location: Optional[dict] = None
 
 class ChatResponse(BaseModel):

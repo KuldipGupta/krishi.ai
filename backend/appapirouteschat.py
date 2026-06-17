@@ -12,6 +12,7 @@ async def chat(request: ChatRequest):
         "message":      request.message,
         "language":     request.language,
         "image_base64": request.image_base64,
+        "image_mime_type": request.image_mime_type,
         "location":     request.location or {"city": "Lucknow"},
         "tool_to_use":  None,
         "tool_result":  None,

@@ -60,6 +60,10 @@ def classify_message(message: str) -> str:
 
 
 def supervisor_node(state: AgentState) -> AgentState:
+    if state.get("image_base64"):
+        state["tool_to_use"] = "disease"
+        return state
+
     decision = classify_message(state.get("message", ""))
 
     state["tool_to_use"] = decision
