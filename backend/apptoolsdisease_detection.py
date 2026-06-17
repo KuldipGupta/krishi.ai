@@ -5,7 +5,6 @@ from google.genai import types
 import base64
 
 client = genai.Client(api_key=GEMINI_API_KEY)
-model_name = "gemini-1.5-flash"
 
 DISEASE_PROMPT = """You are an expert agricultural scientist specializing in crop diseases.
 
@@ -20,31 +19,28 @@ Be specific and practical. A farmer will read this."""
 
 def disease_node(state: AgentState) -> AgentState:
     image_base64 = state.get("image_base64")
-    
-    # If no image sent, give general advice
+
     if not image_base64:
         state["tool_result"] = "No image received. Please send a photo of your crop for disease analysis."
         return state
-    
+
     try:
-        # Decode the base64 image
         image_data = base64.b64decode(image_base64)
-        
-        # Send image to Gemini
+
         response = client.models.generate_content(
-            model=model_name,
+            model="gemini-1.5-flash",
             contents=[
                 DISEASE_PROMPT,
-                types.Part.from_bytes(data=image_data, mime_type="image/jpeg"),
-            ],
+                types.Part.from_bytes(
+                    data=image_data,
+                    mime_type="image/jpeg"
+                )
+            ]
         )
-        
+
         state["tool_result"] = response.text
-        
+
     except Exception as e:
-        state["tool_result"] = f"Could not analyze image. Please try again with a clearer photo."
-    
+        state["tool_result"] = "Could not analyze image. Please try again with a clearer photo."
+
     return state
-
-
-disease_detection_tool = disease_node
