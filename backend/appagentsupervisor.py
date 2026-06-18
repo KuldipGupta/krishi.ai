@@ -1,70 +1,44 @@
 from app.agent.state import AgentState
+from app.config import GROQ_API_KEY
+from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
-from appserviceslanguage import invoke_groq_with_fallbacks
 
-SUPERVISOR_PROMPT = """You are a routing assistant. Read the farmer's message and reply with ONLY one word from this list:
+llm = ChatGroq(
+    api_key=GROQ_API_KEY,
+    model="llama-3.3-70b-versatile",
+    temperature=0
+)
 
-- disease     → farmer mentions crop disease, pest, yellowing, spots, insects, damage, or sends a photo
-- weather     → farmer asks about rain, weather, temperature, irrigation timing
-- mandi       → farmer asks about price, rate, mandi, market, sell, crop value
-- schemes     → farmer asks about government scheme, subsidy, loan, PM Kisan, registration
+SUPERVISOR_PROMPT = """You are a routing assistant. Read the farmer's message and reply with ONLY one word:
+
+- disease     → crop disease, pest, yellowing, spots, insects, damage, photo
+- weather     → rain, weather, temperature, irrigation timing
+- mandi       → price, rate, mandi, market, sell, crop value
+- schemes     → government scheme, subsidy, loan, PM Kisan, registration
 - general     → everything else
 
-Reply with ONLY that one word. No explanation. No punctuation. Just the word."""
-
-
-def classify_message(message: str) -> str:
-    msg = (message or "").lower()
-
-    disease_keywords = [
-        "रोग",
-        "कीड़ा",
-        "कीड़े",
-        "कीड़े",
-        "peele",
-        "पीले",
-        "pila",
-        "tamatar",
-        "टमाटर",
-        "patte",
-        "पत्ते",
-        "bimari",
-        "bemaari",
-        "fungus",
-        "spots",
-        "leaf",
-        "yellowing",
-        "infection",
-        "photo",
-    ]
-    weather_keywords = [
-        "बारिश", "मौसम", "mausam", "baarish", "तापमान", "tapmaan", "rain", "temperature", "weather",
-        "बादल", "badal", "बरसात", "barsaat", "humidity", "धूप", "dhoop",
-    ]
-    mandi_keywords = ["मंडी", "price", "rate", "भाव", "बाजार", "sell", "बेच", "आढ़त"]
-    scheme_keywords = ["scheme", "schemes", "subsidy", "loan", "pm kisan", "किसान सम्मान", "बीमा", "registration"]
-    general_keywords = ["खाद", "उर्वरक", "बीज", "बुवाई", "सिंचाई", "कटाई", "फसल", "खेत", "कब देना", "कब दें", "कब दे"]
-
-    if any(keyword in msg for keyword in disease_keywords):
-        return "disease"
-    if any(keyword in msg for keyword in weather_keywords):
-        return "weather"
-    if any(keyword in msg for keyword in mandi_keywords):
-        return "mandi"
-    if any(keyword in msg for keyword in scheme_keywords):
-        return "schemes"
-    if any(keyword in msg for keyword in general_keywords):
-        return "general"
-
-    return "general"
-
+Reply with ONLY that one word. Nothing else."""
 
 def supervisor_node(state: AgentState) -> AgentState:
-    if state.get("image_base64"):
-        state["tool_to_use"] = "disease"
-        return state
+    # Build context from last 4 messages
+    history_text = ""
+    if state.get("chat_history"):
+        history_text = "\nPrevious conversation:\n"
+        for msg in state["chat_history"][-4:]:
+            role = "Farmer" if msg["role"] == "user" else "AI"
+            history_text += f"{role}: {msg['content']}\n"
 
-    decision = classify_message(state.get("message", ""))
+    full_message = f"{history_text}\nCurrent message: {state['message']}"
+
+    response = llm.invoke([
+        SystemMessage(content=SUPERVISOR_PROMPT),
+        HumanMessage(content=full_message)
+    ])
+
+    decision = response.content.strip().lower()
+    valid = {"disease", "weather", "mandi", "schemes", "general"}
+    if decision not in valid:
+        decision = "general"
 
     state["tool_to_use"] = decision
     return state

@@ -16,6 +16,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize RAG and ChromaDB on server startup"""
+    try:
+        from appservicesembeddings import get_vectorstore
+        print("🚀 Initializing RAG and ChromaDB...")
+        get_vectorstore()
+        print("✅ RAG & ChromaDB Ready!")
+    except Exception as e:
+        print(f"⚠️ RAG initialization warning: {e}")
+
 @app.get("/")
 async def root():
     return {"message": "Krishi.ai backend is running"}

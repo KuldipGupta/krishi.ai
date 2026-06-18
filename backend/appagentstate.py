@@ -1,12 +1,12 @@
-from typing import TypedDict, Optional
+from typing import TypedDict, Optional, List
 
 class AgentState(TypedDict):
     session_id:    str
     message:       str
     language:      str
     image_base64:  Optional[str]
-    image_mime_type: Optional[str]
     location:      Optional[dict]
+    chat_history:  List[dict]      # NEW - stores past messages
     tool_to_use:   Optional[str]
     tool_result:   Optional[str]
     final_reply:   Optional[str]

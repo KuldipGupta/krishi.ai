@@ -1,42 +1,55 @@
 from app.agent.state import AgentState
+from app.config import GROQ_API_KEY
+from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
-from appserviceslanguage import invoke_groq_with_fallbacks
 
-SYNTHESIZER_PROMPT = """You are Krishi.ai, a friendly farming assistant for Indian farmers.
+llm = ChatGroq(
+    api_key=GROQ_API_KEY,
+    model="llama-3.3-70b-versatile",
+    temperature=0.4
+)
 
-You will receive raw data from a tool. Convert it into a warm, helpful reply.
+SYNTHESIZER_PROMPT = """You are Kisaan AI, a friendly farming assistant for Indian farmers.
+
+Convert the raw tool data into a warm helpful reply.
 
 Rules:
-- Reply only in this language: {language}
-- If the language is hi, write in Hindi.
-- If the language is en, write in English.
-- If the language is pa, write in Punjabi.
-- If the language is mr, write in Marathi.
-- If the language is te, write in Telugu.
-- Use simple words, no technical jargon
+- Reply in the same language the farmer used
+- Use simple words
 - Be warm and respectful
 - Give concrete actionable advice
 - Keep reply under 120 words
+- If farmer told you their name earlier in history, use it
+- If farmer mentioned their crop or location earlier, refer to it
 
-Farmer's question: {message}
+Conversation history:
+{history}
+
+Farmer's current question: {message}
 Tool used: {tool_used}
 Raw data: {tool_result}"""
 
 def synthesizer_node(state: AgentState) -> AgentState:
+    # Format history for prompt
+    history_text = "No previous conversation."
+    if state.get("chat_history"):
+        lines = []
+        for msg in state["chat_history"][-6:]:
+            role = "Farmer" if msg["role"] == "user" else "AI"
+            lines.append(f"{role}: {msg['content']}")
+        history_text = "\n".join(lines)
+
     prompt = SYNTHESIZER_PROMPT.format(
+        history=history_text,
         message=state["message"],
         tool_used=state.get("tool_to_use", "general"),
-        tool_result=state.get("tool_result", "No data available"),
-        language=state.get("language", "hi")
+        tool_result=state.get("tool_result", "No data available")
     )
 
-    response_text, _, _ = invoke_groq_with_fallbacks(
-        [
-            SystemMessage(content=prompt),
-            HumanMessage(content="Generate the farmer friendly response now."),
-        ],
-        temperature=0.4,
-    )
+    response = llm.invoke([
+        SystemMessage(content=prompt),
+        HumanMessage(content="Generate the farmer friendly response now.")
+    ])
 
-    state["final_reply"] = response_text.strip() if response_text else "माफ करें, कुछ गड़बड़ हो गई।"
+    state["final_reply"] = response.content.strip()
     return state
