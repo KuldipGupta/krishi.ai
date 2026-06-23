@@ -23,8 +23,11 @@ vectorstore = None
 def get_embeddings():
     global embeddings
     if embeddings is None:
+        # Use environment override if provided, otherwise use a known
+        # supported Gemini embedding model name.
+        embedding_model = os.getenv("GEMINI_EMBEDDING_MODEL", "textembedding-gecko-001")
         embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/embedding-001",
+            model=embedding_model,
             google_api_key=GEMINI_API_KEY
         )
     return embeddings
@@ -88,4 +91,35 @@ def get_relevant_schemes(query: str) -> str:
         return combined
 
     except Exception as e:
+        # Embedding/vector search failed (e.g., model mismatch or API issue).
+        # Fallback: do a simple keyword search over the original schemes text file.
+        try:
+            schemes_path = next((path for path in SCHEMES_PATHS if os.path.exists(path)), None)
+            if schemes_path:
+                with open(schemes_path, "r", encoding="utf-8") as f:
+                    text = f.read()
+
+                text_lower = text.lower()
+                q = query.lower()
+
+                # If exact query appears, return surrounding section(s) split by '---'
+                sections = [s.strip() for s in text.split('---') if s.strip()]
+                matches = [s for s in sections if q in s.lower()]
+                if matches:
+                    return "\n\n---\n\n".join(matches[:3])
+
+                # Otherwise, look for any token matches and return the best sections
+                tokens = [t for t in q.split() if len(t) > 2]
+                found = []
+                for sec in sections:
+                    sec_l = sec.lower()
+                    for t in tokens:
+                        if t in sec_l and sec not in found:
+                            found.append(sec)
+                            break
+                if found:
+                    return "\n\n---\n\n".join(found[:3])
+        except Exception:
+            pass
+
         return "Scheme information abhi available nahi hai. Baad mein try karein."
