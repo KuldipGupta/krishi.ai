@@ -1,8 +1,8 @@
-# Krishi.ai 🌾
+# krishi.ai 🌾
 
 **AI-powered farming assistant for Indian farmers**
 
-Krishi.ai is an intelligent chatbot designed to support rural Indian farmers with real-time information on crop disease detection, weather forecasts, market prices (mandi), government schemes, and general farming guidance.
+krishi.ai is an intelligent chatbot designed to support rural Indian farmers with real-time information on crop disease detection, weather forecasts, market prices (mandi), government schemes, and general farming guidance.
 
 ---
 
@@ -53,8 +53,8 @@ Krishi.ai is an intelligent chatbot designed to support rural Indian farmers wit
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/krishi-ai.git
-cd krishi-ai
+git clone https://github.com/yourusername/krishi.ai.git
+cd krishi.ai
 ```
 
 ### 2. Create and Activate Virtual Environment
@@ -108,7 +108,7 @@ The API will be available at `http://localhost:8000`
 ## 📁 Project Structure
 
 ```
-krishi-ai/
+krishi.ai/
 ├── backend/
 │   ├── app/
 │   │   ├── agent/
@@ -160,7 +160,7 @@ Response:
 ```json
 {
   "status": "ok",
-  "service": "krishi-ai-backend"
+  "service": "krishi.ai"
 }
 ```
 

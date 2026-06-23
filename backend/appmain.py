@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import chat
 
 app = FastAPI(
-    title="Krishi.ai",
+    title="krishi.ai",
     description="AI Farming Assistant for Rural India",
     version="1.0.0"
 )
@@ -29,11 +29,11 @@ async def startup_event():
 
 @app.get("/")
 async def root():
-    return {"message": "Krishi.ai backend is running"}
+    return {"message": "krishi.ai backend is running"}
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "service": "krishi-ai"}
+    return {"status": "ok", "service": "krishi.ai"}
 
 # Register chat route
 app.include_router(chat.router, prefix="/api")

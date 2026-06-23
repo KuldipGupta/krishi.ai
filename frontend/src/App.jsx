@@ -12,7 +12,7 @@ function App() {
   const [messages, setMessages] = useState([
     {
       role: "ai",
-      text: "नमस्ते किसान जी! मैं किसान AI हूँ। आप मुझसे फसल, मौसम, मंडी भाव या सरकारी योजनाओं के बारे में पूछ सकते हैं।"
+      text: "नमस्ते किसान जी! मैं krishi.ai हूँ। आप मुझसे फसल, मौसम, मंडी भाव या सरकारी योजनाओं के बारे में पूछ सकते हैं।"
     }
   ])
   const [input, setInput] = useState("")

@@ -2,8 +2,8 @@ function Header({ language, onLanguageChange }) {
   return (
     <div className="bg-green-600 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
       <div>
-        <h1 className="text-xl font-bold">🌾 किसान AI</h1>
-        <p className="text-green-100 text-sm">आपका कृषि सहायक</p>
+        <h1 className="text-xl font-bold">🌾 krishi.ai</h1>
+        <p className="text-green-100 text-sm">Your farming assistant</p>
       </div>
 
       <select
