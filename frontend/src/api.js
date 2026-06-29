@@ -1,4 +1,6 @@
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "http://127.0.0.1:8000/api" : "/api")
+// In production API is on same domain (/api)
+// In development it is on localhost:8000
+const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api"
 
 export async function sendMessage(
   sessionId,
@@ -15,55 +17,42 @@ export async function sendMessage(
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      session_id: sessionId,
-      message: message,
-      language: language || "hi",
+      session_id:   sessionId,
+      message:      message,
+      language:     language || "hi",
       image_base64: imageBase64 || null,
-      location: { city: "Lucknow" }
+      location:     { city: "Lucknow" }
     })
   })
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`API error ${response.status}: ${errorText}`)
-  }
-
+  // Get a reader to read chunks as they arrive
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
-  let buffer = ""
 
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
 
-    buffer += decoder.decode(value, { stream: true })
+    // Decode the chunk bytes to text
+    const text = decoder.decode(value)
 
-    let newlineIndex
-    while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-      const line = buffer.slice(0, newlineIndex).trim()
-      buffer = buffer.slice(newlineIndex + 1)
+    // Each chunk may contain multiple lines
+    const lines = text.split("\n")
 
-      if (!line.startsWith("data: ")) continue
+    for (const line of lines) {
+      // SSE lines start with "data: "
+      if (line.startsWith("data: ")) {
+        try {
+          const data = JSON.parse(line.slice(6))
 
-      try {
-        const data = JSON.parse(line.slice(6))
-        if (data.type === "tool") onTool(data.tool)
-        if (data.type === "chunk") onChunk(data.content)
-        if (data.type === "done") onDone()
-      } catch (e) {
-        // Ignore malformed or incomplete JSON on this line
+          if (data.type === "tool")  onTool(data.tool)
+          if (data.type === "chunk") onChunk(data.content)
+          if (data.type === "done")  onDone()
+
+        } catch (e) {
+          // Incomplete chunk — skip it
+        }
       }
-    }
-  }
-
-  if (buffer.trim().startsWith("data: ")) {
-    try {
-      const data = JSON.parse(buffer.trim().slice(6))
-      if (data.type === "tool") onTool(data.tool)
-      if (data.type === "chunk") onChunk(data.content)
-      if (data.type === "done") onDone()
-    } catch (e) {
-      // Ignore leftover partial buffer
     }
   }
 }

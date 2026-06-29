@@ -1,7 +1,10 @@
+import app.config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.api.routes import chat, khata
-from app.config import FRONTEND_URL
+import os
 
 app = FastAPI(
     title="krishi.ai",
@@ -9,39 +12,45 @@ app = FastAPI(
     version="1.0.0"
 )
 
-allowed_origins = [
-    FRONTEND_URL,
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
-
+# CORS — allow all origins since we serve from same domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin for origin in allowed_origins if origin],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize RAG and ChromaDB on server startup"""
-    try:
-        from appservicesembeddings import get_vectorstore
-        print("🚀 Initializing RAG and ChromaDB...")
-        get_vectorstore()
-        print("✅ RAG & ChromaDB Ready!")
-    except Exception as e:
-        print(f"⚠️ RAG initialization warning: {e}")
+# API routes
+app.include_router(chat.router,  prefix="/api")
+app.include_router(khata.router, prefix="/api")
 
-@app.get("/")
-async def root():
-    return {"message": "krishi.ai backend is running"}
-
+# Health check
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "service": "krishi.ai"}
+    return {"status": "ok", "service": "kisaan-ai"}
 
-# Register chat route
-app.include_router(chat.router, prefix="/api")
-app.include_router(khata.router, prefix="/api")
+# Serve React static files
+# This looks for the build folder relative to backend/
+FRONTEND_BUILD = os.path.join(
+    os.path.dirname(__file__),
+    "../../frontend/dist"
+)
+
+if os.path.exists(FRONTEND_BUILD):
+    # Serve static assets (JS, CSS, images)
+    app.mount(
+        "/assets",
+        StaticFiles(directory=os.path.join(FRONTEND_BUILD, "assets")),
+        name="assets"
+    )
+
+    # Serve React app for all non-API routes
+    @app.get("/{full_path:path}")
+    async def serve_react(full_path: str):
+        index_path = os.path.join(FRONTEND_BUILD, "index.html")
+        return FileResponse(index_path)
+else:
+    @app.get("/")
+    async def root():
+        return {"message": "krishi.ai backend is running"}

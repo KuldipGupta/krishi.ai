@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { BASE_URL } from "../api"
+//import { BASE_URL } from "../api"
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api"
 const API = axios.create({ baseURL: BASE_URL })
 
 // Get session ID from localStorage
