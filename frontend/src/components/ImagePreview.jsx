@@ -6,7 +6,7 @@ function ImagePreview({ image, onRemove }) {
       <img
         src={image}
         alt="preview"
-        className="h-16 w-16 object-cover rounded-lg border-2 border-green-300"
+        className="h-16 w-16 object-cover rounded-lg border-2 border-blue-300"
       />
       <div>
         <p className="text-xs text-gray-500 mb-1">फसल की फोटो तैयार है</p>

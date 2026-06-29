@@ -21,6 +21,8 @@ llm = ChatGroq(
 
 SYNTHESIZER_PROMPT = """You are Kisaan AI, a friendly farming assistant for Indian farmers.
 
+Language: {language}
+
 Convert the raw tool data into a warm helpful reply.
 
 Rules:
@@ -95,6 +97,8 @@ async def chat(request: ChatRequest):
         profile_text += f"Crops: {profile['crops']}\n"
     if profile.get("summary"):
         profile_text += f"Previous summary: {profile['summary']}\n"
+    if request.language:
+        profile_text += f"Preferred language: {request.language}\n"
     if not profile_text:
         profile_text = "New farmer, no profile yet."
 
@@ -104,7 +108,8 @@ async def chat(request: ChatRequest):
         history=history_text,
         message=request.message,
         tool_used=tools_used,
-        tool_result=combined_result
+        tool_result=combined_result,
+        language=request.language or "hi"
     )
 
     # Step 9 — Stream response

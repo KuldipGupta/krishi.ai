@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import chat
+from app.api.routes import chat, khata
+from app.config import FRONTEND_URL
 
 app = FastAPI(
     title="krishi.ai",
@@ -8,9 +9,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+allowed_origins = [
+    FRONTEND_URL,
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[origin for origin in allowed_origins if origin],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,3 +44,4 @@ async def health():
 
 # Register chat route
 app.include_router(chat.router, prefix="/api")
+app.include_router(khata.router, prefix="/api")

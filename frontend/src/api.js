@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000/api"
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "http://127.0.0.1:8000/api" : "/api")
 
 export async function sendMessage(
   sessionId,
@@ -23,34 +23,47 @@ export async function sendMessage(
     })
   })
 
-  // Get a reader to read chunks as they arrive
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`API error ${response.status}: ${errorText}`)
+  }
+
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
+  let buffer = ""
 
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
 
-    // Decode the chunk bytes to text
-    const text = decoder.decode(value)
+    buffer += decoder.decode(value, { stream: true })
 
-    // Each chunk may contain multiple lines
-    const lines = text.split("\n")
+    let newlineIndex
+    while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+      const line = buffer.slice(0, newlineIndex).trim()
+      buffer = buffer.slice(newlineIndex + 1)
 
-    for (const line of lines) {
-      // SSE lines start with "data: "
-      if (line.startsWith("data: ")) {
-        try {
-          const data = JSON.parse(line.slice(6))
+      if (!line.startsWith("data: ")) continue
 
-          if (data.type === "tool")  onTool(data.tool)
-          if (data.type === "chunk") onChunk(data.content)
-          if (data.type === "done")  onDone()
-
-        } catch (e) {
-          // Incomplete chunk — skip it
-        }
+      try {
+        const data = JSON.parse(line.slice(6))
+        if (data.type === "tool") onTool(data.tool)
+        if (data.type === "chunk") onChunk(data.content)
+        if (data.type === "done") onDone()
+      } catch (e) {
+        // Ignore malformed or incomplete JSON on this line
       }
+    }
+  }
+
+  if (buffer.trim().startsWith("data: ")) {
+    try {
+      const data = JSON.parse(buffer.trim().slice(6))
+      if (data.type === "tool") onTool(data.tool)
+      if (data.type === "chunk") onChunk(data.content)
+      if (data.type === "done") onDone()
+    } catch (e) {
+      // Ignore leftover partial buffer
     }
   }
 }

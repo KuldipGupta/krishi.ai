@@ -19,7 +19,7 @@ function InputBar({ input, onInputChange, onSend, onImageSelect, loading }) {
   }
 
   return (
-    <div className="px-4 py-3 border-t border-gray-200 flex items-center gap-2">
+    <div className="px-4 py-3 border-t border-gray-200 flex items-center gap-2 dark:border-slate-700 dark:bg-slate-950">
 
       {/* Hidden file input */}
       <input
@@ -33,7 +33,7 @@ function InputBar({ input, onInputChange, onSend, onImageSelect, loading }) {
       {/* Image upload button */}
       <button
         onClick={() => fileRef.current.click()}
-        className="text-green-600 hover:text-green-800 text-xl p-2 rounded-full hover:bg-green-50 transition"
+        className="text-blue-600 hover:text-blue-800 text-xl p-2 rounded-full hover:bg-blue-50 transition"
         title="फसल की फोटो भेजें"
       >
         📷
@@ -47,14 +47,14 @@ function InputBar({ input, onInputChange, onSend, onImageSelect, loading }) {
         onKeyDown={handleKeyDown}
         placeholder="अपना सवाल यहाँ लिखें..."
         disabled={loading}
-        className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-green-500 disabled:opacity-50"
+        className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
       />
 
       {/* Send button */}
       <button
         onClick={onSend}
         disabled={loading}
-        className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50 transition"
+        className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50 transition dark:bg-sky-500 dark:hover:bg-sky-600"
       >
         भेजें
       </button>
