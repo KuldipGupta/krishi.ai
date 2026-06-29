@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.api.routes import chat, khata
+from pathlib import Path
 import os
 
 app = FastAPI(
@@ -31,25 +32,21 @@ async def health():
     return {"status": "ok", "service": "kisaan-ai"}
 
 # Serve React static files
-# This looks for the build folder relative to backend/
-FRONTEND_BUILD = os.path.join(
-    os.path.dirname(__file__),
-    "../../frontend/dist"
-)
+# The frontend build lives next to the backend folder in the repo.
+FRONTEND_BUILD = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 
-if os.path.exists(FRONTEND_BUILD):
+if FRONTEND_BUILD.exists():
     # Serve static assets (JS, CSS, images)
     app.mount(
         "/assets",
-        StaticFiles(directory=os.path.join(FRONTEND_BUILD, "assets")),
+        StaticFiles(directory=str(FRONTEND_BUILD / "assets")),
         name="assets"
     )
 
     # Serve React app for all non-API routes
     @app.get("/{full_path:path}")
     async def serve_react(full_path: str):
-        index_path = os.path.join(FRONTEND_BUILD, "index.html")
-        return FileResponse(index_path)
+        return FileResponse(FRONTEND_BUILD / "index.html")
 else:
     @app.get("/")
     async def root():
