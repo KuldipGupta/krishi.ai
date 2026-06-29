@@ -6,3 +6,5 @@ data/chroma_db/
 frontend/node_modules/
 frontend/.env
 .vscode/
+!frontend/dist/
+!frontend/dist/**
